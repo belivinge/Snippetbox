@@ -2,7 +2,7 @@ Book "Let's Go!" by Alex Edwards
 
 ** Snippetox **
 
-![Web Visualization]([https://autodealsjapan.com/blog/wp-content/uploads/2023/06/38938d7ac17b4f52ac4e97cb8ff11699.jpg])
+![Web Visualization]([https://github.com/belivinge/Snippetbox/blob/master/ui/static/Screenshot%20from%202023-12-07%2006-58-33.png])
 
 ```
 You’ll learn how to:
