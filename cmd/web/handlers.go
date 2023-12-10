@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -11,7 +13,22 @@ func home(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	w.Write([]byte("Hello from SnippetBox!"))
+	docs := []string{
+		"./ui/html/home_page.html",
+		"./ui/html/base_layout.html",
+		"./ui/html/footer_partial.html",
+	}
+	ts, err := template.ParseFiles(docs...)
+	if err != nil {
+		log.Println(err.Error)
+		http.Error(w, "Internal Server Error", 500)
+	}
+	err = ts.Execute(w, nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
+	// w.Write([]byte("Hello from SnippetBox!"))
 }
 
 func snippet(w http.ResponseWriter, r *http.Request) {
@@ -31,4 +48,8 @@ func creator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte("Psst, let's create some snippet duh"))
+}
+
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./ui/static/file.zip")
 }
