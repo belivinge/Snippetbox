@@ -2,7 +2,7 @@ Book "Let's Go!" by Alex Edwards
 
 ** Snippetox **
 
-![Web Visualization]([https://github.com/belivinge/Snippetbox/blob/master/ui/static/Screenshot%20from%202023-12-07%2006-58-33.png])
+![Web Visualization](https://github.com/belivinge/Snippetbox/blob/master/ui/static/img/Screenshot%20from%202023-12-07%2006-58-33.png)
 
 ```
 You’ll learn how to:
