@@ -7,9 +7,14 @@ import (
 	"os"
 )
 
-type Config struct {
-	Addr      string
-	StaticDir string
+// type Config struct {
+// 	Addr      string
+// 	StaticDir string
+// }
+
+type application struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
 }
 
 func main() {
@@ -19,15 +24,28 @@ func main() {
 	// flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
 	flag.Parse()
 
+	// you can always open a file in Go and use it as your log destination:
+	// f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer f.Close()
+
 	// use log.New() to create a logger for writing information messages
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	// use stderr for writing error messages
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// initialize a new instance of application containing the dependencies
+	app := &application{
+		errorLog: errorLog,
+		infoLog:  infoLog,
+	}
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)                // subtree path, ends with slash, default - > followed by anything
-	mux.HandleFunc("/sneep", snippet)        // fixed path
-	mux.HandleFunc("/sneep/create", creator) // fixed path
+	mux.HandleFunc("/", app.home)                // subtree path, ends with slash, default - > followed by anything
+	mux.HandleFunc("/sneep", app.snippet)        // fixed path
+	mux.HandleFunc("/sneep/create", app.creator) // fixed path
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))

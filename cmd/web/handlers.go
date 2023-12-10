@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -20,18 +19,24 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 	ts, err := template.ParseFiles(docs...)
 	if err != nil {
-		log.Println(err.Error)
+		// log.Println(err.Error)
+		// method against application, it can access its fields
+		app.errorLog.Println(err.Error)
 		http.Error(w, "Internal Server Error", 500)
+		return
 	}
 	err = ts.Execute(w, nil)
 	if err != nil {
-		log.Println(err.Error())
+		// log.Println(err.Error())
+		// method against application
+		app.errorLog.Println(err.Error)
 		http.Error(w, "Internal Server Error", 500)
 	}
 	// w.Write([]byte("Hello from SnippetBox!"))
 }
 
-func snippet(w http.ResponseWriter, r *http.Request) {
+// changing the signature of every function here so that it is defined as a method against application
+func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -41,7 +46,7 @@ func snippet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "\nDisplay id : %d", id)
 }
 
-func creator(w http.ResponseWriter, r *http.Request) {
+func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		http.Error(w, "Method Not Allowed", 405)
@@ -50,6 +55,6 @@ func creator(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Psst, let's create some snippet duh"))
 }
 
-func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./ui/static/file.zip")
-}
+// func downloadHandler(w http.ResponseWriter, r *http.Request) {
+// 	http.ServeFile(w, r, "./ui/static/file.zip")
+// }
