@@ -9,7 +9,8 @@ import (
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		// http.NotFound(w, r)
+		app.notFound(w) // using the notfound() helper instead
 		return
 	}
 	docs := []string{
@@ -21,16 +22,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// log.Println(err.Error)
 		// method against application, it can access its fields
-		app.errorLog.Println(err.Error)
-		http.Error(w, "Internal Server Error", 500)
+		// app.errorLog.Println(err.Error)
+		// http.Error(w, "Internal Server Error", 500)
+		app.serverError(w, err) // using serverError() helper instead
 		return
 	}
 	err = ts.Execute(w, nil)
 	if err != nil {
 		// log.Println(err.Error())
 		// method against application
-		app.errorLog.Println(err.Error)
-		http.Error(w, "Internal Server Error", 500)
+		// app.errorLog.Println(err.Error)
+		// http.Error(w, "Internal Server Error", 500)
+		app.serverError(w, err) // using serverError() helper instead
 	}
 	// w.Write([]byte("Hello from SnippetBox!"))
 }
@@ -39,7 +42,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		// http.NotFound(w, r)
+		app.notFound(w) // use the notFound() helper instead
 		return
 	}
 	w.Write([]byte("Hey! you are using snippet right now"))
@@ -49,7 +53,8 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
-		http.Error(w, "Method Not Allowed", 405)
+		// http.Error(w, "Method Not Allowed", 405)
+		app.clientError(w, http.StatusMethodNotAllowed) //using the clientError() helper instead
 		return
 	}
 	w.Write([]byte("Psst, let's create some snippet duh"))

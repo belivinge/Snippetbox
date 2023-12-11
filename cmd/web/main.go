@@ -17,6 +17,10 @@ type application struct {
 	infoLog  *log.Logger
 }
 
+// parsing the runtime configuration settings
+// making dependencies for the handlers
+// running http server
+
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	// cfg := new(Config)
@@ -42,20 +46,20 @@ func main() {
 		infoLog:  infoLog,
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)                // subtree path, ends with slash, default - > followed by anything
-	mux.HandleFunc("/sneep", app.snippet)        // fixed path
-	mux.HandleFunc("/sneep/create", app.creator) // fixed path
+	// mux := http.NewServeMux()
+	// mux.HandleFunc("/", app.home)                // subtree path, ends with slash, default - > followed by anything
+	// mux.HandleFunc("/sneep", app.snippet)        // fixed path
+	// mux.HandleFunc("/sneep/create", app.creator) // fixed path
 
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	// fileServer := http.FileServer(http.Dir("./ui/static/"))
+	// mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	// a new http.Server struct. We set the Addr and Handler fields
 	// the ErrorLog field so that the server uses the custom erroring logger
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(),
 	}
 
 	// writing messages using two loggers, instead of the standard logger
