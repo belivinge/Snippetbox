@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 	"net/http"
@@ -26,6 +27,9 @@ func main() {
 	// cfg := new(Config)
 	// flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	// flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
+
+	// Defining a new command-file flag for MYSQL DSN string
+	dsn := flag.String("dsn", "web:pass@/snippetbox?parseTime=true", "MySQL database")
 	flag.Parse()
 
 	// you can always open a file in Go and use it as your log destination:
@@ -39,6 +43,15 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	// use stderr for writing error messages
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	// to create a connection pool into separate openDB() function - > we pass openDB() the DSN from the flag
+	db, err := openDB(*dsn)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	// defer a call to db.Close(), so that the connection pool is closed before main.go function exists
+	defer db.Close()
 
 	// initialize a new instance of application containing the dependencies
 	app := &application{
@@ -69,6 +82,18 @@ func main() {
 
 	// err := http.ListenAndServe(*addr, mux)
 	// errorLog.Fatal(err)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
+}
+
+// The opendb() function wraps sql.Open() and returns a sql.DB connection pool for a given DSN
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
