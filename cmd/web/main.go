@@ -1,11 +1,13 @@
 package main
 
 import (
-	"database/sql"
+	"database/sql" // new import
 	"flag"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // type Config struct {
