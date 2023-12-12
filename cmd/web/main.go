@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/belivinge/Snippetbox/pkg/models/mysql"
+	a "github.com/go-sql-driver/mysql"
 )
 
 // type Config struct {
@@ -19,6 +20,8 @@ import (
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	// make SnippetModel object available to handlers
+	snippets *mysql.SnippetModel
 }
 
 // parsing the runtime configuration settings
@@ -26,7 +29,7 @@ type application struct {
 // running http server
 
 func main() {
-	cfg := mysql.Config{
+	cfg := a.Config{
 		User:                 os.Getenv("web"),
 		Passwd:               os.Getenv("pass"),
 		Net:                  "tcp",
@@ -76,6 +79,8 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		// adding Snippetbox to the application dependencies
+		snippets: &mysql.SnippetModel{DB: db},
 	}
 
 	// mux := http.NewServeMux()

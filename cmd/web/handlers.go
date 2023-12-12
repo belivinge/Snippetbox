@@ -54,9 +54,24 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		// http.Error(w, "Method Not Allowed", 405)
-		app.clientError(w, http.StatusMethodNotAllowed) //using the clientError() helper instead
+		app.clientError(w, http.StatusMethodNotAllowed) // using the clientError() helper instead
 		return
 	}
+
+	// some dummy data
+	title := "O snail"
+	content := "O snail\nClimb Mount Fuje\nBut slowly, slowly\n"
+	expires := "7"
+
+	// pass the data to the snippetmodel method, receiving the id
+	id, err := app.snippets.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// redirect th user to the relevant page
+	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
 	w.Write([]byte("Psst, let's create some snippet duh"))
 }
 
