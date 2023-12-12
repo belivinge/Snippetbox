@@ -3,11 +3,12 @@ package main
 import (
 	"database/sql" // new import
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 // type Config struct {
@@ -25,14 +26,23 @@ type application struct {
 // running http server
 
 func main() {
+	cfg := mysql.Config{
+		User:                 os.Getenv("web"),
+		Passwd:               os.Getenv("pass"),
+		Net:                  "tcp",
+		Addr:                 "localhost",
+		DBName:               "snippetbox",
+		AllowNativePasswords: true,
+	}
+	var err error
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	// cfg := new(Config)
 	// flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	// flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
 
 	// Defining a new command-file flag for MYSQL DSN string
-	dsn := flag.String("dsn", "web:pass@/snippetbox?parseTime=true", "MySQL database")
-	flag.Parse()
+	// dsn := flag.String("dsn", "root:root@/snippetbox?parseTime=true", "MySQL database")
+	// flag.Parse()
 
 	// you can always open a file in Go and use it as your log destination:
 	// f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
@@ -47,14 +57,21 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// to create a connection pool into separate openDB() function - > we pass openDB() the DSN from the flag
-	db, err := openDB(*dsn)
+	// db, err := openDB(*dsn)
+	// if err != nil {
+	// 	errorLog.Fatal(err)
+	// }
+	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
-		errorLog.Fatal(err)
+		log.Fatal(err)
 	}
-
+	// pingErr := db.Ping()
+	// if pingErr != nil {
+	// 	log.Fatal(pingErr)
+	// }
+	fmt.Println("Connected!")
 	// defer a call to db.Close(), so that the connection pool is closed before main.go function exists
 	defer db.Close()
-
 	// initialize a new instance of application containing the dependencies
 	app := &application{
 		errorLog: errorLog,
@@ -97,5 +114,6 @@ func openDB(dsn string) (*sql.DB, error) {
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
+	fmt.Println("aoaoao")
 	return db, nil
 }
