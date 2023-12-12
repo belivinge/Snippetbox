@@ -8,20 +8,20 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/belivinge/Snippetbox/pkg/models/mysql"
-	a "github.com/go-sql-driver/mysql"
+	"github.com/belivinge/Snippetbox/pkg/models/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// type Config struct {
-// 	Addr      string
-// 	StaticDir string
-// }
+type Config struct {
+	Addr      string
+	StaticDir string
+}
 
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
 	// make SnippetModel object available to handlers
-	snippets *mysql.SnippetModel
+	snippets *sqlite.SnippetModel
 }
 
 // parsing the runtime configuration settings
@@ -29,30 +29,23 @@ type application struct {
 // running http server
 
 func main() {
-	cfg := a.Config{
-		User:                 os.Getenv("web"),
-		Passwd:               os.Getenv("pass"),
-		Net:                  "tcp",
-		Addr:                 "localhost",
-		DBName:               "snippetbox",
-		AllowNativePasswords: true,
-	}
-	var err error
-	addr := flag.String("addr", ":4000", "HTTP network address")
+	cfg := new(Config)
+	// var err error
+	// addr := flag.String("addr", ":4000", "HTTP network address")
 	// cfg := new(Config)
-	// flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
-	// flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
+	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
+	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
 
 	// Defining a new command-file flag for MYSQL DSN string
-	// dsn := flag.String("dsn", "root:root@/snippetbox?parseTime=true", "MySQL database")
+	dsn := flag.String("dsn", "db/snippetbox?parseTime=true", "MySQL database")
 	// flag.Parse()
 
 	// you can always open a file in Go and use it as your log destination:
-	// f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer f.Close()
+	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
 
 	// use log.New() to create a logger for writing information messages
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -60,14 +53,14 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// to create a connection pool into separate openDB() function - > we pass openDB() the DSN from the flag
-	// db, err := openDB(*dsn)
-	// if err != nil {
-	// 	errorLog.Fatal(err)
-	// }
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err := openDB(*dsn)
 	if err != nil {
-		log.Fatal(err)
+		errorLog.Fatal(err)
 	}
+	// db, err := sql.Open("mysql", cfg.FormatDSN())
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// pingErr := db.Ping()
 	// if pingErr != nil {
 	// 	log.Fatal(pingErr)
@@ -80,7 +73,7 @@ func main() {
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		// adding Snippetbox to the application dependencies
-		snippets: &mysql.SnippetModel{DB: db},
+		snippets: &sqlite.SnippetModel{DB: db},
 	}
 
 	// mux := http.NewServeMux()
@@ -94,13 +87,13 @@ func main() {
 	// a new http.Server struct. We set the Addr and Handler fields
 	// the ErrorLog field so that the server uses the custom erroring logger
 	srv := &http.Server{
-		Addr:     *addr,
+		Addr:     cfg.Addr,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
 
 	// writing messages using two loggers, instead of the standard logger
-	infoLog.Printf("Starting server on %s", *addr)
+	infoLog.Printf("Starting server on %s", cfg.Addr)
 	// $go run cmd/web/* -addr="number more than > 1023"
 	// because ports 0-1023 are restricted and can only be used by services which have root privileges
 
@@ -112,7 +105,7 @@ func main() {
 
 // The opendb() function wraps sql.Open() and returns a sql.DB connection pool for a given DSN
 func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
