@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/belivinge/Snippetbox/pkg/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +49,19 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w) // use the notFound() helper instead
 		return
 	}
+
+	// SnippetModels's GET method to get the data for id. If no math - > Not Found
+	s, err := app.snippets.Get(int(id))
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
 	w.Write([]byte("Hey! you are using snippet right now"))
-	fmt.Fprintf(w, "\nDisplay id : %d", id)
+	fmt.Fprintf(w, "\nDisplay id : %d\n", id)
+	fmt.Fprintf(w, "%v", s)
 }
 
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
