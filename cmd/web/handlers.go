@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -67,11 +68,12 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
+		log.Println("Error inserting snippet:", err)
 		return
 	}
 
 	// redirect the user to the relevant page
-	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/sneep?id=%d", id), http.StatusSeeOther)
 	w.Write([]byte("Psst, let's create some snippet duh"))
 }
 

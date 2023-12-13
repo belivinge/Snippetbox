@@ -37,7 +37,7 @@ func main() {
 	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
 
 	// Defining a new command-file flag for MYSQL DSN string
-	dsn := flag.String("dsn", "db/snippetbox?parseTime=true", "MySQL database")
+	dsn := flag.String("dsn", "db/snippetbox.db?parseTime=true", "MySQL database")
 	// flag.Parse()
 
 	// you can always open a file in Go and use it as your log destination:
@@ -56,6 +56,10 @@ func main() {
 	db, err := openDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
+	}
+	_, err = db.Exec("ATTACH DATABASE 'snippetbox.db' AS snippetbox")
+	if err != nil {
+		log.Fatal(err)
 	}
 	// db, err := sql.Open("mysql", cfg.FormatDSN())
 	// if err != nil {
