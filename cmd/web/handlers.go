@@ -70,7 +70,7 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// redirect th user to the relevant page
+	// redirect the user to the relevant page
 	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
 	w.Write([]byte("Psst, let's create some snippet duh"))
 }
