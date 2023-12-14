@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/belivinge/Snippetbox/pkg/models/sqlite"
 	_ "github.com/mattn/go-sqlite3"
@@ -22,6 +23,8 @@ type application struct {
 	infoLog  *log.Logger
 	// make SnippetModel object available to handlers
 	snippets *sqlite.SnippetModel
+	// templatecache field to the app
+	templatecache map[string]*template.Template
 }
 
 // parsing the runtime configuration settings
@@ -29,17 +32,14 @@ type application struct {
 // running http server
 
 func main() {
-	cfg := new(Config)
 	// var err error
 	// addr := flag.String("addr", ":4000", "HTTP network address")
-	// cfg := new(Config)
+	cfg := new(Config)
 	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
-
+	flag.Parse()
 	// Defining a new command-file flag for MYSQL DSN string
 	dsn := flag.String("dsn", "db/snippetbox.db?parseTime=true", "MySQL database")
-	// flag.Parse()
-
 	// you can always open a file in Go and use it as your log destination:
 	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
@@ -57,10 +57,10 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
-	_, err = db.Exec("ATTACH DATABASE 'snippetbox.db' AS snippetbox")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// _, err = db.Exec("ATTACH DATABASE 'snippetbox.db' AS snippetbox")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// db, err := sql.Open("mysql", cfg.FormatDSN())
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -69,15 +69,22 @@ func main() {
 	// if pingErr != nil {
 	// 	log.Fatal(pingErr)
 	// }
-	fmt.Println("Connected!")
+	// fmt.Println("Connected!")
 	// defer a call to db.Close(), so that the connection pool is closed before main.go function exists
 	defer db.Close()
+
+	// a new template cache
+	templateCache, err := newTemplateCache("./ui/html/")
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 	// initialize a new instance of application containing the dependencies
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		// adding Snippetbox to the application dependencies
-		snippets: &sqlite.SnippetModel{DB: db},
+		snippets:      &sqlite.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	// mux := http.NewServeMux()

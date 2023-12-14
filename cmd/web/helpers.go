@@ -6,6 +6,8 @@ import (
 	"runtime/debug"
 )
 
+
+
 // 500 Internal Server Error
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())

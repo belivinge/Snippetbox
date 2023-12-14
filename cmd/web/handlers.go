@@ -16,6 +16,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w) // using the notfound() helper instead
 		return
 	}
+
+	s, err := app.snippets.Latest()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// for _, snippet := range s {
+	// 	fmt.Fprintf(w, "%v\n", snippet)
+	// }
+	// slice of snippets
+	data := &templateData{Snippets: s}
 	docs := []string{
 		"./ui/html/home_page.html",
 		"./ui/html/base_layout.html",
@@ -30,7 +42,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err) // using serverError() helper instead
 		return
 	}
-	err = ts.Execute(w, nil)
+	// pass templateData when executing the template
+	err = ts.Execute(w, data)
 	if err != nil {
 		// log.Println(err.Error())
 		// method against application
@@ -59,9 +72,29 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.Write([]byte("Hey! you are using snippet right now"))
-	fmt.Fprintf(w, "\nDisplay id : %d\n", id)
-	fmt.Fprintf(w, "%v", s)
+
+	// struct holding the snippet data
+	data := &templateData{Snippet: s}
+
+	docs := []string{
+		"./ui/html/show_page.html",
+		"./ui/html/base_layout.html",
+		"./ui/html/footer_partial.html",
+	}
+	// parse the templates
+	ts, err := template.ParseFiles(docs...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// execute and pass in the templateData
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	// w.Write([]byte("Hey! you are using snippet right now"))
+	// fmt.Fprintf(w, "\nDisplay id : %d\n", id)
+	// fmt.Fprintf(w, "%v\n", s)
 }
 
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
