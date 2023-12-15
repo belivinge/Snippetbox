@@ -1,12 +1,41 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
+// takes a pointer to a templateData struct, adds the current year, then returns the pointer
+func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
+	if td == nil {
+		td = &templateData{}
+	}
+	td.CurrentYear = time.Now().Year()
+	return td
+}
 
+// retirieve the template set from the cache base on html page
+func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td *templateData) {
+	ts, ok := app.templatecache[name]
+	if !ok {
+		app.serverError(w, fmt.Errorf("The template %s does not exist", name))
+		return
+	}
+	// a new buffer
+	buf := new(bytes.Buffer)
+	// execute the template set passing in dynamic data
+	// write the template to the buffer
+	err := ts.Execute(buf, app.addDefaultData(td, r))
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// we pass http.ResponseWriter to a function that takes an io.Writer
+	buf.WriteTo(w)
+}
 
 // 500 Internal Server Error
 func (app *application) serverError(w http.ResponseWriter, err error) {

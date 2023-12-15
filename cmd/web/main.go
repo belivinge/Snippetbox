@@ -4,10 +4,10 @@ import (
 	"database/sql" // new import
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
-	"text/template"
 
 	"github.com/belivinge/Snippetbox/pkg/models/sqlite"
 	_ "github.com/mattn/go-sqlite3"
@@ -37,9 +37,9 @@ func main() {
 	cfg := new(Config)
 	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
-	flag.Parse()
 	// Defining a new command-file flag for MYSQL DSN string
 	dsn := flag.String("dsn", "db/snippetbox.db?parseTime=true", "MySQL database")
+	flag.Parse()
 	// you can always open a file in Go and use it as your log destination:
 	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
@@ -84,7 +84,7 @@ func main() {
 		infoLog:  infoLog,
 		// adding Snippetbox to the application dependencies
 		snippets:      &sqlite.SnippetModel{DB: db},
-		templateCache: templateCache,
+		templatecache: templateCache,
 	}
 
 	// mux := http.NewServeMux()

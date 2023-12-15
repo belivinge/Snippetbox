@@ -3,12 +3,24 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/belivinge/Snippetbox/pkg/models"
 )
 
+// creates a nicley formatted string representation of a time.Time obkect
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2020 at 15:04")
+}
+
+// string-keyed map
+var functions = template.FuncMap{
+	"humanDate": humanDate,
+}
+
 type templateData struct {
-	Snippet *models.Snippet
+	CurrentYear int
+	Snippet     *models.Snippet
 	// snippet field in the templatedata struct
 	Snippets []*models.Snippet
 }
@@ -26,7 +38,9 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 		// extract filename
 		name := filepath.Base(page)
 		// parse the page template file to template set
-		ts, err := template.ParseFiles(page)
+		// template.FuncMap must be registered before the ParseFiles() method
+
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -22,41 +21,48 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-
-	// for _, snippet := range s {
-	// 	fmt.Fprintf(w, "%v\n", snippet)
+	// *** use the render helper instead ***
+	// // for _, snippet := range s {
+	// // 	fmt.Fprintf(w, "%v\n", snippet)
+	// // }
+	// // slice of snippets
+	// data := &templateData{Snippets: s}
+	// docs := []string{
+	// 	"./ui/html/home_page.html",
+	// 	"./ui/html/base_layout.html",
+	// 	"./ui/html/footer_partial.html",
 	// }
-	// slice of snippets
-	data := &templateData{Snippets: s}
-	docs := []string{
-		"./ui/html/home_page.html",
-		"./ui/html/base_layout.html",
-		"./ui/html/footer_partial.html",
-	}
-	ts, err := template.ParseFiles(docs...)
-	if err != nil {
-		// log.Println(err.Error)
-		// method against application, it can access its fields
-		// app.errorLog.Println(err.Error)
-		// http.Error(w, "Internal Server Error", 500)
-		app.serverError(w, err) // using serverError() helper instead
-		return
-	}
-	// pass templateData when executing the template
-	err = ts.Execute(w, data)
-	if err != nil {
-		// log.Println(err.Error())
-		// method against application
-		// app.errorLog.Println(err.Error)
-		// http.Error(w, "Internal Server Error", 500)
-		app.serverError(w, err) // using serverError() helper instead
-	}
-	// w.Write([]byte("Hello from SnippetBox!"))
+	// ts, err := template.ParseFiles(docs...)
+	// if err != nil {
+	// 	// log.Println(err.Error)
+	// 	// method against application, it can access its fields
+	// 	// app.errorLog.Println(err.Error)
+	// 	// http.Error(w, "Internal Server Error", 500)
+	// 	app.serverError(w, err) // using serverError() helper instead
+	// 	return
+	// }
+	// // pass templateData when executing the template
+	// err = ts.Execute(w, data)
+	// if err != nil {
+	// 	// log.Println(err.Error())
+	// 	// method against application
+	// 	// app.errorLog.Println(err.Error)
+	// 	// http.Error(w, "Internal Server Error", 500)
+	// 	app.serverError(w, err) // using serverError() helper instead
+	// }
+	// // w.Write([]byte("Hello from SnippetBox!"))
+	app.render(w, r, "home_page.html", &templateData{
+		Snippets: s,
+	})
 }
 
 // changing the signature of every function here so that it is defined as a method against application
 func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if r.URL.Path == "/snippets" && err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	if err != nil || id < 1 {
 		// http.NotFound(w, r)
 		app.notFound(w) // use the notFound() helper instead
@@ -72,29 +78,32 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	// *** use the render helper instead ***
+	// // struct holding the snippet data
+	// data := &templateData{Snippet: s}
 
-	// struct holding the snippet data
-	data := &templateData{Snippet: s}
-
-	docs := []string{
-		"./ui/html/show_page.html",
-		"./ui/html/base_layout.html",
-		"./ui/html/footer_partial.html",
-	}
-	// parse the templates
-	ts, err := template.ParseFiles(docs...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	// execute and pass in the templateData
-	err = ts.Execute(w, data)
-	if err != nil {
-		app.serverError(w, err)
-	}
-	// w.Write([]byte("Hey! you are using snippet right now"))
-	// fmt.Fprintf(w, "\nDisplay id : %d\n", id)
-	// fmt.Fprintf(w, "%v\n", s)
+	// docs := []string{
+	// 	"./ui/html/show_page.html",
+	// 	"./ui/html/base_layout.html",
+	// 	"./ui/html/footer_partial.html",
+	// }
+	// // parse the templates
+	// ts, err := template.ParseFiles(docs...)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// 	return
+	// }
+	// // execute and pass in the templateData
+	// err = ts.Execute(w, data)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
+	// // w.Write([]byte("Hey! you are using snippet right now"))
+	// // fmt.Fprintf(w, "\nDisplay id : %d\n", id)
+	// // fmt.Fprintf(w, "%v\n", s)
+	app.render(w, r, "show_page.html", &templateData{
+		Snippet: s,
+	})
 }
 
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
