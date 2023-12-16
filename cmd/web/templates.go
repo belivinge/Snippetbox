@@ -10,7 +10,7 @@ import (
 
 // creates a nicley formatted string representation of a time.Time obkect
 func humanDate(t time.Time) string {
-	return t.Format("02 Jan 2020 at 15:04")
+	return t.Format("02 Jan 2006 at 15:04")
 }
 
 // string-keyed map
