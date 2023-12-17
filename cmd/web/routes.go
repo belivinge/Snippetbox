@@ -1,18 +1,38 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/bmizerany/pat"
+	"github.com/justinas/alice"
+)
 
 // http.Handler instead of *http.ServeMux
 func (app *application) routes() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/sneep", app.snippet)
-	mux.HandleFunc("/sneep/create", app.creator)
+	// alice managing middleware
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	// mux := http.NewServeMux()
+	mux := pat.New()
+
+	// mux.HandleFunc("/", app.home)
+	mux.Get("/", http.HandlerFunc(app.home))
+
+	// snippet form
+	mux.Get("/sneep/create", http.HandlerFunc(app.creatorForm))
+
+	// mux.HandleFunc("/sneep", app.snippet)
+	mux.Post("/sneep/create", http.HandlerFunc(app.creator))
+
+	// changing the id route URL path
+	mux.Get("/sneep/:id", http.HandlerFunc(app.snippet))
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	mux.Get("/static/", http.StripPrefix("/static", fileServer))
 
-	return secureHeaders(mux)
+	// wrapping the chain with the logrequest middleware
+	// return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+	return standardMiddleware.Then(mux)
 }
 
 // 208 page

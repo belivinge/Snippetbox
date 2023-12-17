@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -10,12 +9,12 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		// http.NotFound(w, r)
-		app.notFound(w) // using the notfound() helper instead
-		return
-	}
-
+	// we don't need it because the "/" path matches exactly in Pat package
+	// if r.URL.Path != "/" {
+	// 	// http.NotFound(w, r)
+	// 	app.notFound(w) // using the notfound() helper instead
+	// 	return
+	// }
 	s, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
@@ -58,11 +57,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 // changing the signature of every function here so that it is defined as a method against application
 func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if r.URL.Path == "/snippets" && err != nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	// Pat doesn't strip the colon from the capture key
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 	if err != nil || id < 1 {
 		// http.NotFound(w, r)
 		app.notFound(w) // use the notFound() helper instead
@@ -106,13 +102,18 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// returns a placeholder result
+func (app *application) creatorForm(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Create a new snippet..."))
+}
+
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")
-		// http.Error(w, "Method Not Allowed", 405)
-		app.clientError(w, http.StatusMethodNotAllowed) // using the clientError() helper instead
-		return
-	}
+	// if r.Method != "POST" {
+	// 	w.Header().Set("Allow", "POST")
+	// 	// http.Error(w, "Method Not Allowed", 405)
+	// 	app.clientError(w, http.StatusMethodNotAllowed) // using the clientError() helper instead
+	// 	return
+	// }
 
 	// some dummy data
 	title := "O snail"
@@ -123,13 +124,12 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
-		log.Println("Error inserting snippet:", err)
 		return
 	}
 
 	// redirect the user to the relevant page
-	http.Redirect(w, r, fmt.Sprintf("/sneep?id=%d", id), http.StatusSeeOther)
-	w.Write([]byte("Psst, let's create some snippet duh"))
+	http.Redirect(w, r, fmt.Sprintf("/sneep/%d", id), http.StatusSeeOther)
+	// w.Write([]byte("Psst, let's create some snippet duh"))
 }
 
 // func downloadHandler(w http.ResponseWriter, r *http.Request) {
