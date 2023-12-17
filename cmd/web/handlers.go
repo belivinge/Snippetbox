@@ -104,7 +104,7 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 
 // returns a placeholder result
 func (app *application) creatorForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new snippet..."))
+	app.render(w, r, "create_page.html", nil)
 }
 
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
@@ -115,10 +115,17 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
+	// the same way for PUT and PATCH requests
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+	}
+
 	// some dummy data
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuje\nBut slowly, slowly\n"
-	expires := "7"
+	// using PostForm.Get() method to retireve the data from r.PostForm map.
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires := r.PostForm.Get("expires")
 
 	// pass the data to the snippetmodel method, receiving the id
 	id, err := app.snippets.Insert(title, content, expires)

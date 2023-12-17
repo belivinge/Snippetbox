@@ -8,17 +8,16 @@ import (
 func (app *application) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// deferred function which will run as go unwinds the stack
-		go func() { // goroutine to do some background processing
-			defer func() {
-				// builtin recover function
-				if err := recover(); err != nil {
-					// closes the connection and informs the user
-					w.Header().Set("Connection", "close")
-					app.serverError(w, fmt.Errorf("%s", err))
-				}
-			}()
-			next.ServeHTTP(w, r)
+		// goroutine to do some background processing
+		defer func() {
+			// builtin recover function
+			if err := recover(); err != nil {
+				// closes the connection and informs the user
+				w.Header().Set("Connection", "close")
+				app.serverError(w, fmt.Errorf("%s", err))
+			}
 		}()
+		next.ServeHTTP(w, r)
 	})
 }
 

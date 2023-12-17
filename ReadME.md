@@ -16,3 +16,8 @@ You’ll learn how to:
  - markup DRY and free of boilerplate.
  - Serve static files like images, CSS and JavaScript from your application.
 ```
+
+A standard Post-Redirect-Get pattern
+   1. The user is shown the blank form when they request GET to /sneep/create
+   2. When user completes the form it is submitted to the server via POST request to sneep/create
+   3. The form data is validated by the creator handler. If there is any failures, the form will be re-diplayed with the highlighted fields. If it passes, the new snippet will be added to the database and then the user will be redirected to "/sneep/:id".
