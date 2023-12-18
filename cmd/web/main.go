@@ -8,8 +8,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/belivinge/Snippetbox/pkg/models/sqlite"
+	"github.com/golangcollege/sessions"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -21,6 +23,7 @@ type Config struct {
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	session  *sessions.Session
 	// make SnippetModel object available to handlers
 	snippets *sqlite.SnippetModel
 	// templatecache field to the app
@@ -39,6 +42,8 @@ func main() {
 	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
 	// Defining a new command-file flag for MYSQL DSN string
 	dsn := flag.String("dsn", "db/snippetbox.db?parseTime=true", "MySQL database")
+	// a random key for the session secret
+	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret key")
 	flag.Parse()
 	// you can always open a file in Go and use it as your log destination:
 	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
@@ -78,10 +83,16 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+
+	// to initialize a session manager
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour //expires after 12 hours
+
 	// initialize a new instance of application containing the dependencies
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		session:  session,
 		// adding Snippetbox to the application dependencies
 		snippets:      &sqlite.SnippetModel{DB: db},
 		templatecache: templateCache,

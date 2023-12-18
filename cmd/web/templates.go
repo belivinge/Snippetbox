@@ -21,6 +21,7 @@ var functions = template.FuncMap{
 
 type templateData struct {
 	CurrentYear int
+	Flash       string // confirmation message
 	// Error fields to the templateData struct
 	// FormData   url.Values //the same underlying type as the r.PostForm map
 	// FormErrors map[string]string

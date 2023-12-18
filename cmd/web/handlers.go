@@ -98,7 +98,14 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	// // w.Write([]byte("Hey! you are using snippet right now"))
 	// // fmt.Fprintf(w, "\nDisplay id : %d\n", id)
 	// // fmt.Fprintf(w, "%v\n", s)
+
+	// to retrieve the value for the "flash" key, then to delete the key and value from the session data
+	flash := app.session.PopString(r, "flash")
+
 	app.render(w, r, "show_page.html", &templateData{
+		// passing the flash message to the template
+		Flash: flash,
+
 		Snippet: s,
 	})
 }
@@ -181,6 +188,10 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+
+	// to add the confirmation message
+	app.session.Put(r, "flash", "Snippet successfully created!")
+
 	// redirect the user to the relevant page
 	http.Redirect(w, r, fmt.Sprintf("/sneep/%d", id), http.StatusSeeOther)
 	// w.Write([]byte("Psst, let's create some snippet duh"))
