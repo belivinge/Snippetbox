@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/belivinge/Snippetbox/pkg/models"
 )
@@ -119,6 +121,7 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
+		return
 	}
 
 	// some dummy data
@@ -126,6 +129,32 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 	title := r.PostForm.Get("title")
 	content := r.PostForm.Get("content")
 	expires := r.PostForm.Get("expires")
+
+	// a map to hold any validation errors
+	errors := make(map[string]string)
+
+	// checking if title is not empty and is not more than 100 chs long
+	if strings.TrimSpace(title) == "" {
+		errors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		errors["title"] = "This field is too long (maximum is 100 characters)"
+	}
+
+	// checking others for validation
+	if strings.TrimSpace(content) == "" {
+		errors["content"] = "This field cannot be blank"
+	}
+	if strings.TrimSpace(expires) == "" {
+		errors["expires"] = "This field cannot be blank"
+	} else if expires != "365" && expires != "7" && expires != "1" {
+		errors["expires"] = "This field is invalid"
+	}
+
+	// if there are any errors
+	if len(errors) > 0 {
+		fmt.Fprint(w, errors)
+		return
+	}
 
 	// pass the data to the snippetmodel method, receiving the id
 	id, err := app.snippets.Insert(title, content, expires)
