@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/belivinge/Snippetbox/pkg/forms"
 	"github.com/belivinge/Snippetbox/pkg/models"
 )
 
@@ -20,7 +21,11 @@ var functions = template.FuncMap{
 
 type templateData struct {
 	CurrentYear int
-	Snippet     *models.Snippet
+	// Error fields to the templateData struct
+	// FormData   url.Values //the same underlying type as the r.PostForm map
+	// FormErrors map[string]string
+	Form    *forms.Form
+	Snippet *models.Snippet
 	// snippet field in the templatedata struct
 	Snippets []*models.Snippet
 }

@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
+	"github.com/belivinge/Snippetbox/pkg/forms"
 	"github.com/belivinge/Snippetbox/pkg/models"
 )
 
@@ -106,7 +105,10 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 
 // returns a placeholder result
 func (app *application) creatorForm(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "create_page.html", nil)
+	app.render(w, r, "create_page.html", &templateData{
+		// new empty forms
+		Form: forms.New(nil),
+	})
 }
 
 func (app *application) creator(w http.ResponseWriter, r *http.Request) {
@@ -126,43 +128,59 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 
 	// some dummy data
 	// using PostForm.Get() method to retireve the data from r.PostForm map.
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-	expires := r.PostForm.Get("expires")
+	// title := r.PostForm.Get("title")
+	// content := r.PostForm.Get("content")
+	// expires := r.PostForm.Get("expires")
 
-	// a map to hold any validation errors
-	errors := make(map[string]string)
+	// forms.Form struct containing POSTed data from the form
+	form := forms.New(r.PostForm)
+	form.Required("title", "content", "expires")
+	form.MaxLength("title", 100)
+	form.PermittedValues("expires", "365", "7", "1")
 
-	// checking if title is not empty and is not more than 100 chs long
-	if strings.TrimSpace(title) == "" {
-		errors["title"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		errors["title"] = "This field is too long (maximum is 100 characters)"
-	}
-
-	// checking others for validation
-	if strings.TrimSpace(content) == "" {
-		errors["content"] = "This field cannot be blank"
-	}
-	if strings.TrimSpace(expires) == "" {
-		errors["expires"] = "This field cannot be blank"
-	} else if expires != "365" && expires != "7" && expires != "1" {
-		errors["expires"] = "This field is invalid"
-	}
-
-	// if there are any errors
-	if len(errors) > 0 {
-		fmt.Fprint(w, errors)
+	// if the form is not valid - > redisplay the template
+	if !form.Valid() {
+		app.render(w, r, "create_page.html", &templateData{Form: form})
 		return
 	}
 
+	// // a map to hold any validation errors
+	// errors := make(map[string]string)
+
+	// // checking if title is not empty and is not more than 100 chs long
+	// if strings.TrimSpace(title) == "" {
+	// 	errors["title"] = "This field cannot be blank"
+	// } else if utf8.RuneCountInString(title) > 100 {
+	// 	errors["title"] = "This field is too long (maximum is 100 characters)"
+	// }
+
+	// // checking others for validation
+	// if strings.TrimSpace(content) == "" {
+	// 	errors["content"] = "This field cannot be blank"
+	// }
+	// if strings.TrimSpace(expires) == "" {
+	// 	errors["expires"] = "This field cannot be blank"
+	// } else if expires != "365" && expires != "7" && expires != "1" {
+	// 	errors["expires"] = "This field is invalid"
+	// }
+
+	// // if there are any errors - > re-display the create_page.html passing the errors
+	// if len(errors) > 0 {
+	// 	app.render(w, r, "create_page.html", &templateData{
+	// 		FormErrors: errors,
+	// 		FormData:   r.PostForm,
+	// 	})
+	// 	// fmt.Fprint(w, errors)
+	// 	return
+	// }
+
 	// pass the data to the snippetmodel method, receiving the id
-	id, err := app.snippets.Insert(title, content, expires)
+	// id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-
 	// redirect the user to the relevant page
 	http.Redirect(w, r, fmt.Sprintf("/sneep/%d", id), http.StatusSeeOther)
 	// w.Write([]byte("Psst, let's create some snippet duh"))
