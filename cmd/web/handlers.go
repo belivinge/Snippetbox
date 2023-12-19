@@ -100,11 +100,11 @@ func (app *application) snippet(w http.ResponseWriter, r *http.Request) {
 	// // fmt.Fprintf(w, "%v\n", s)
 
 	// to retrieve the value for the "flash" key, then to delete the key and value from the session data
-	flash := app.session.PopString(r, "flash")
+	// flash := app.session.PopString(r, "flash") // no longer is needed because of addDefaultData in helpers.go
 
 	app.render(w, r, "show_page.html", &templateData{
 		// passing the flash message to the template
-		Flash: flash,
+		// Flash: flash, // no longer is needed because of addDefaultData in helpers.go
 
 		Snippet: s,
 	})

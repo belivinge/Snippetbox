@@ -86,7 +86,8 @@ func main() {
 
 	// to initialize a session manager
 	session := sessions.New([]byte(*secret))
-	session.Lifetime = 12 * time.Hour //expires after 12 hours
+	session.Lifetime = 12 * time.Hour // expires after 12 hours
+	session.Secure = true             // the secure flag is set on our cookies
 
 	// initialize a new instance of application containing the dependencies
 	app := &application{
@@ -121,7 +122,8 @@ func main() {
 
 	// err := http.ListenAndServe(*addr, mux)
 	// errorLog.Fatal(err)
-	err = srv.ListenAndServe()
+	// use the listenandserve to start the HTTPS server
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
 }
 
