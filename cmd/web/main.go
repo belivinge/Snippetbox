@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql" // new import
 	"flag"
 	"fmt"
@@ -99,6 +100,12 @@ func main() {
 		templatecache: templateCache,
 	}
 
+	// a tls.Config strcut is initialized
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,                                     // controls whether the HTTPS connection should use Go's fovored cipher suites or user's. By setting this to true - we prefer Go's suites.
+		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256}, // specify which elliptic curves should be preferred during the TLS handshake
+	}
+
 	// mux := http.NewServeMux()
 	// mux.HandleFunc("/", app.home)                // subtree path, ends with slash, default - > followed by anything
 	// mux.HandleFunc("/sneep", app.snippet)        // fixed path
@@ -110,9 +117,14 @@ func main() {
 	// a new http.Server struct. We set the Addr and Handler fields
 	// the ErrorLog field so that the server uses the custom erroring logger
 	srv := &http.Server{
-		Addr:     cfg.Addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(),
+		Addr:      cfg.Addr,
+		ErrorLog:  errorLog,
+		Handler:   app.routes(),
+		TLSConfig: tlsConfig,
+		// Adding Idle, Read and Write Timeouts to the server
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// writing messages using two loggers, instead of the standard logger
