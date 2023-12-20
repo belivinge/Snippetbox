@@ -10,7 +10,10 @@ import (
 )
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display the user signup form...")
+	// fmt.Fprintln(w, "Display the user signup form...")
+	app.render(w, r, "signup_page.html", &templateData{
+		Form: forms.New(nil),
+	})
 }
 
 func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {

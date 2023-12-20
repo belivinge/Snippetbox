@@ -1,4 +1,4 @@
-Creating Users table in the snippetbox database
+Creating "Users" table in the snippetbox database
 
 -- Create SQLite database (if not exists)
 ATTACH DATABASE 'snippetbox.db' AS snippetbox;
@@ -14,3 +14,5 @@ CREATE TABLE snippetbox.users (
 
 -- Add unique constraint to email column
 CREATE UNIQUE INDEX users_uc_email ON snippetbox.users (email);
+
+- UNIQUE constraint on the email column ensures that we will not end up with two users with the same email address.

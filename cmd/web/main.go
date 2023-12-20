@@ -29,6 +29,8 @@ type application struct {
 	snippets *sqlite.SnippetModel
 	// templatecache field to the app
 	templatecache map[string]*template.Template
+	// users field
+	users *sqlite.UserModel
 }
 
 // parsing the runtime configuration settings
@@ -98,13 +100,15 @@ func main() {
 		// adding Snippetbox to the application dependencies
 		snippets:      &sqlite.SnippetModel{DB: db},
 		templatecache: templateCache,
+		// initialize a sqlite.UserModel
+		users: &sqlite.UserModel{DB: db},
 	}
 
 	// a tls.Config strcut is initialized
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,                                     // controls whether the HTTPS connection should use Go's fovored cipher suites or user's. By setting this to true - we prefer Go's suites.
 		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256}, // specify which elliptic curves should be preferred during the TLS handshake
-		//in Go only CurveP256 and X25519 have assembly implementations
+		// in Go only CurveP256 and X25519 have assembly implementations
 	}
 
 	// mux := http.NewServeMux()
@@ -121,7 +125,7 @@ func main() {
 		Addr:      cfg.Addr,
 		ErrorLog:  errorLog,
 		Handler:   app.routes(),
-		TLSConfig: tlsConfig,//transport layer security
+		TLSConfig: tlsConfig, // transport layer security
 		// Adding Idle, Read and Write Timeouts to the server
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
