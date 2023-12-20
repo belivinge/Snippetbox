@@ -104,6 +104,7 @@ func main() {
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,                                     // controls whether the HTTPS connection should use Go's fovored cipher suites or user's. By setting this to true - we prefer Go's suites.
 		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256}, // specify which elliptic curves should be preferred during the TLS handshake
+		//in Go only CurveP256 and X25519 have assembly implementations
 	}
 
 	// mux := http.NewServeMux()
@@ -120,7 +121,7 @@ func main() {
 		Addr:      cfg.Addr,
 		ErrorLog:  errorLog,
 		Handler:   app.routes(),
-		TLSConfig: tlsConfig,
+		TLSConfig: tlsConfig,//transport layer security
 		// Adding Idle, Read and Write Timeouts to the server
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,

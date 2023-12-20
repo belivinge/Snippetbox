@@ -9,6 +9,26 @@ import (
 	"github.com/belivinge/Snippetbox/pkg/models"
 )
 
+func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display the user signup form...")
+}
+
+func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Create a new user...")
+}
+
+func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display the user login form...")
+}
+
+func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Authenticate and login the user...")
+}
+
+func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Kill the session and logout the user...")
+}
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// we don't need it because the "/" path matches exactly in Pat package
 	// if r.URL.Path != "/" {

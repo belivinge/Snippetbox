@@ -1,0 +1,16 @@
+Creating Users table in the snippetbox database
+
+-- Create SQLite database (if not exists)
+ATTACH DATABASE 'snippetbox.db' AS snippetbox;
+
+-- Create users table
+CREATE TABLE snippetbox.users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    hashed_password TEXT NOT NULL,
+    created DATETIME NOT NULL
+);
+
+-- Add unique constraint to email column
+CREATE UNIQUE INDEX users_uc_email ON snippetbox.users (email);
