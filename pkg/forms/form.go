@@ -72,7 +72,7 @@ func (f *Form) MinLength(field string, d int) {
 }
 
 // to check if it matches a regular expression
-func (f *Form) MathesPattern(field string, pattern *regexp.Regexp) {
+func (f *Form) MatchesPattern(field string, pattern *regexp.Regexp) {
 	value := f.Get(field)
 	if value == "" {
 		return

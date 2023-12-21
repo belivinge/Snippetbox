@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/belivinge/Snippetbox/pkg/models"
 	"github.com/belivinge/Snippetbox/pkg/models/sqlite"
 	"github.com/golangcollege/sessions"
 	_ "github.com/mattn/go-sqlite3"
@@ -26,11 +27,19 @@ type application struct {
 	infoLog  *log.Logger
 	session  *sessions.Session
 	// make SnippetModel object available to handlers
-	snippets *sqlite.SnippetModel
+	snippets interface {
+		Insert(string, string, string) (int, error)
+		Get(int) (*models.Snippet, error)
+		Latest() ([]*models.Snippet, error)
+	}
 	// templatecache field to the app
 	templatecache map[string]*template.Template
 	// users field
-	users *sqlite.UserModel
+	users interface {
+		Insert(string, string, string) error
+		Authenticate(string, string) (int, error)
+		Get(int) (*models.User, error)
+	}
 }
 
 // parsing the runtime configuration settings
@@ -43,11 +52,11 @@ func main() {
 	cfg := new(Config)
 	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	flag.StringVar(&cfg.StaticDir, "static-dir", "./ui/static", "Path to static assets")
+	flag.Parse()
 	// Defining a new command-file flag for MYSQL DSN string
 	dsn := flag.String("dsn", "db/snippetbox.db?parseTime=true", "MySQL database")
 	// a random key for the session secret
 	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret key")
-	flag.Parse()
 	// you can always open a file in Go and use it as your log destination:
 	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
@@ -106,8 +115,11 @@ func main() {
 
 	// a tls.Config strcut is initialized
 	tlsConfig := &tls.Config{
-		PreferServerCipherSuites: true,                                     // controls whether the HTTPS connection should use Go's fovored cipher suites or user's. By setting this to true - we prefer Go's suites.
-		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256}, // specify which elliptic curves should be preferred during the TLS handshake
+		PreferServerCipherSuites: true, // controls whether the HTTPS connection should use Go's fovored cipher suites or user's. By setting this to true - we prefer Go's suites.
+		CurvePreferences: []tls.CurveID{
+			tls.X25519,
+			tls.CurveP256,
+		}, // specify which elliptic curves should be preferred during the TLS handshake
 		// in Go only CurveP256 and X25519 have assembly implementations
 	}
 

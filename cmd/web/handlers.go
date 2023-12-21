@@ -17,7 +17,44 @@ func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create a new user...")
+	// parsing
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// form contents
+	form := forms.New(r.PostForm)
+	form.Required("name", "email", "password")
+	form.MatchesPattern("email", forms.EmailRX)
+	form.MinLength("password", 10)
+	// fmt.Fprintln(w, "Create a new user...")
+	// if any errors
+	if !form.Valid() {
+		app.render(w, r, "signup_page.html", &templateData{
+			Form: form,
+		})
+		return
+	}
+	// to create a new user in the database
+	err = app.users.Insert(form.Get("name"), form.Get("email"), form.Get("password"))
+	if err == models.ErrDuplicateEmail {
+		form.Errors.Add("email", "Address is already in use")
+		app.render(w, r, "signup_page.html", &templateData{
+			Form: form,
+		})
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// a confirmation message
+	app.session.Put(r, "flash", "Your signup was successfull. Please log in.")
+	// redirect to login page
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+
+	// placeholder response
+	// fmt.Fprintln(w, "Create a new user...")
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +207,9 @@ func (app *application) creator(w http.ResponseWriter, r *http.Request) {
 
 	// if the form is not valid - > redisplay the template
 	if !form.Valid() {
-		app.render(w, r, "create_page.html", &templateData{Form: form})
+		app.render(w, r, "create_page.html", &templateData{
+			Form: form,
+		})
 		return
 	}
 
