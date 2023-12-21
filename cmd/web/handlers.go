@@ -58,15 +58,44 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display the user login form...")
+	// fmt.Fprintln(w, "Display the user login form...")
+	app.render(w, r, "login_page.html", &templateData{
+		Form: forms.New(nil),
+	})
 }
 
 func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Authenticate and login the user...")
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// check if credentials are valid
+	form := forms.New(r.PostForm)
+	id, err := app.users.Authenticate(form.Get("email"), form.Get("password"))
+	if err == models.ErrInvalidCredentials {
+		form.Errors.Add("generic", "Email or Password is incorrect")
+		app.render(w, r, "login_page.html", &templateData{
+			Form: form,
+		})
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// adding the id of the current user to the session
+	app.session.Put(r, "userID", id)
+	http.Redirect(w, r, "/sneep/create", http.StatusSeeOther)
+	// fmt.Fprintln(w, "Authenticate and login the user...")
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Kill the session and logout the user...")
+	// remove th user id from the session to log out
+	app.session.Remove(r, "userID")
+	// add a confirmation message
+	app.session.Put(r, "flash", "You've been logged out successfully!")
+	http.Redirect(w, r, "/", 303)
+	// fmt.Fprintln(w, "Kill the session and logout the user...")
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {

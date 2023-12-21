@@ -40,3 +40,15 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// if the user is not authorized, redirect them to the login page
+		if app.authenticatedUser(r) == 0 {
+			http.Redirect(w, r, "user/login", 302)
+			return
+		}
+		// otherwise call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}

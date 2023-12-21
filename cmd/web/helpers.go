@@ -13,6 +13,7 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	if td == nil {
 		td = &templateData{}
 	}
+	td.AuthenticatedUser = app.authenticatedUser(r)
 	td.CurrentYear = time.Now().Year()
 	// add the flash message if one exists
 	td.Flash = app.session.PopString(r, "flash")
@@ -55,4 +56,8 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 // 404 Not Found
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
+}
+
+func (app *application) authenticatedUser(r *http.Request) int {
+	return app.session.GetInt(r, "userID")
 }

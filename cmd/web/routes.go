@@ -24,10 +24,10 @@ func (app *application) routes() http.Handler {
 	// mux.Get("/", app.session.Enable(http.HandlerFunc(app.home)))
 
 	// snippet form
-	mux.Get("/sneep/create", dynamicMiddleware.ThenFunc(app.creatorForm))
+	mux.Get("/sneep/create", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.creatorForm))
 
 	// mux.HandleFunc("/sneep", app.snippet)
-	mux.Post("/sneep/create", dynamicMiddleware.ThenFunc(app.creator))
+	mux.Post("/sneep/create", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.creator))
 
 	// changing the id route URL path
 	mux.Get("/sneep/:id", dynamicMiddleware.ThenFunc(app.snippet))
@@ -37,7 +37,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/user/signup", dynamicMiddleware.ThenFunc(app.signupUser))
 	mux.Get("/user/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
 	mux.Post("/user/login", dynamicMiddleware.ThenFunc(app.loginUser))
-	mux.Post("/user/logout", dynamicMiddleware.ThenFunc(app.logoutUser))
+	mux.Post("/user/logout", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.logoutUser))
 
 	// static routes, no dynamic applications
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
