@@ -3,7 +3,9 @@
 {{define "title"}}Login{{end}}
 
 {{define "body"}}
-<form action="/user/login" method="POST" novalidate>
+<form action="/sneep/user/login" method="POST" novalidate>
+    <!-- Include the CSRF token -->
+    <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
     {{with .Form}}
     {{with .Errors.Get "generic"}}
     <div class="error">{{.}}</div>

@@ -21,6 +21,7 @@ var functions = template.FuncMap{
 
 type templateData struct {
 	AuthenticatedUser int
+	CSRFToken         string
 	CurrentYear       int
 	Flash             string // confirmation message
 	// Error fields to the templateData struct
