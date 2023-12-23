@@ -17,6 +17,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type contextKey string
+
+var contextKeyUser = contextKey("user")
+
 type Config struct {
 	Addr      string
 	StaticDir string
@@ -58,7 +62,7 @@ func main() {
 	// a random key for the session secret
 	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret key")
 	// you can always open a file in Go and use it as your log destination:
-	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
+	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0o666)
 	if err != nil {
 		log.Fatal(err)
 	}

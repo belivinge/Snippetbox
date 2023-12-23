@@ -13,7 +13,7 @@ func (app *application) routes() http.Handler {
 	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
 	// the middleware specific to dynamic application routes and nosurf middleware
-	dynamicMiddleware := alice.New(app.session.Enable, noSurf)
+	dynamicMiddleware := alice.New(app.session.Enable, noSurf, app.authenticate)
 
 	// mux := http.NewServeMux()
 	mux := pat.New()
@@ -33,11 +33,11 @@ func (app *application) routes() http.Handler {
 	mux.Get("/sneep/:id", dynamicMiddleware.ThenFunc(app.snippet))
 
 	// User Authentication
-	mux.Get("/sneep/user/signup", dynamicMiddleware.ThenFunc(app.signupUserForm))
-	mux.Post("/sneep/user/signup", dynamicMiddleware.ThenFunc(app.signupUser))
-	mux.Get("/sneep/user/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
-	mux.Post("/sneep/user/login", dynamicMiddleware.ThenFunc(app.loginUser))
-	mux.Post("/sneep/user/logout", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.logoutUser))
+	mux.Get("/user/signup", dynamicMiddleware.ThenFunc(app.signupUserForm))
+	mux.Post("/user/signup", dynamicMiddleware.ThenFunc(app.signupUser))
+	mux.Get("/user/login", dynamicMiddleware.ThenFunc(app.loginUserForm))
+	mux.Post("/user/login", dynamicMiddleware.ThenFunc(app.loginUser))
+	mux.Post("/user/logout", dynamicMiddleware.Append(app.requireAuthenticatedUser).ThenFunc(app.logoutUser))
 
 	// static routes, no dynamic applications
 	fileServer := http.FileServer(http.Dir("./ui/static/"))

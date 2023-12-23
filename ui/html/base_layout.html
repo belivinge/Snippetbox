@@ -24,11 +24,11 @@
                 <form action="/user/logout" method="POST">
                     <!-- Include the CSRF token -->
                     <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
-                    <button>Logout</button>
+                    <button>Logout ({{.AuthenticatedUser.Name}})</button>
                 </form>
                 {{else}}
-                <a href="/sneep/user/signup">Sign-Up</a> 
-                <a href="/sneep/user/login">Login</a>
+                <a href="/user/signup">Sign-Up</a> 
+                <a href="/user/login">Login</a>
                 {{end}}
             </div>
         </nav>
